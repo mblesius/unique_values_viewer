@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/unique_values_viewer" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
