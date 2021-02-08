@@ -29,6 +29,7 @@
 * [ ] Improve the search function (include NULL values, sort text in alphabetical order, optimize for different field types like 'date' or 'time')
 * [ ] Add support for multiple fields / field combinations
 * [ ] Enable support for other data providers, classified raster layers
+* [ ] Improve the general performance, add functionality for very large datasets / fields
 
 ## License
 This program is licensed under [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) or any later version
