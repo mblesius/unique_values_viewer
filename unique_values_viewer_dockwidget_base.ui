@@ -499,7 +499,7 @@
            <enum>QAbstractItemView::ExtendedSelection</enum>
           </property>
           <property name="sortingEnabled">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -551,79 +551,41 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
+         <widget class="QGroupBox" name="valuesGrpBox">
+          <property name="title">
            <string>Values</string>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="sortValuesBtn">
-          <property name="toolTip">
-           <string>Sort unique values displayed in the widget.</string>
-          </property>
-          <property name="text">
-           <string>Sort values</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="addValuesOnSearchBtn">
-          <property name="toolTip">
-           <string>Selects values found by the search bar in the list view.</string>
-          </property>
-          <property name="text">
-           <string>Add values to selection on search</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="clearValuesOnSelectBtn">
-          <property name="text">
-           <string>Clear values on field change</string>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="liveUpdateBtn">
-          <property name="toolTip">
-           <string>Updates the unique values automatically when field has changed or layer changed.</string>
-          </property>
-          <property name="text">
-           <string>Update values automatically</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox">
-          <property name="title">
-           <string>Text</string>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout">
+          <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
-            <widget class="QCheckBox" name="checkBox_3">
+            <widget class="QCheckBox" name="clearOnChangeBtn">
              <property name="text">
-              <string>excactly match</string>
+              <string>Clear values when field or layer changes</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_2">
+            <widget class="QCheckBox" name="sortValuesBtn">
+             <property name="toolTip">
+              <string>Sort unique values displayed in the widget.</string>
+             </property>
              <property name="text">
-              <string>contains</string>
+              <string>Sort values</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="liveUpdateBtn">
+             <property name="toolTip">
+              <string>Updates the unique values automatically when field has changed or layer changed.</string>
+             </property>
              <property name="text">
-              <string>start with</string>
+              <string>Update values automatically</string>
              </property>
             </widget>
            </item>
@@ -631,17 +593,56 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_2">
+         <widget class="QGroupBox" name="searchGrpBox">
           <property name="title">
-           <string>Numeric values</string>
+           <string>Search</string>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="title">
-           <string>Dates</string>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <widget class="QGroupBox" name="searchTxtOptions">
+             <property name="title">
+              <string>Text</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QCheckBox" name="checkBox">
+                <property name="text">
+                 <string>starts with</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="checkBox_2">
+                <property name="text">
+                 <string>contains</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="checkBox_3">
+                <property name="text">
+                 <string>excactly matches</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="searchNumericOptions">
+             <property name="title">
+              <string>Numeric values</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="searchDateOptions">
+             <property name="title">
+              <string>Date Time</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
