@@ -32,6 +32,8 @@
 * [x] Support for fields containing NULL-values
 * [x] Better handling of different field types (especially 'date' and 'datetime')
 * [x] Data type specific sorting (alphabetic vs. alphanumeric)
+* [x] Shortcut enabled
+* [x] Remove pandas dependency
   
 #### Further ideas: 
 
