@@ -30,7 +30,7 @@ import os.path
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QShortcut
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -70,6 +70,7 @@ class UniqueValuesViewer:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Unique Values Viewer')
+        self.shortcut = "Ctrl+Alt+U"
 
         #print "** INITIALIZING UniqueValuesViewer"
         self.pluginIsActive = True
@@ -100,11 +101,15 @@ class UniqueValuesViewer:
 
         icon_path = ':/plugins/unique_values_viewer/icon.png'
 
-
         self.showHideAction = QAction(QIcon(icon_path), u'UniqueValuesViewer', self.dockwidget)
         self.showHideAction.setObjectName(u"mUniqueValuesViewer")
-        self.showHideAction.setToolTip("<b>Unique Values Viewer<b>")
+        self.showHideAction.setToolTip(f"<b>Unique Values Viewer<b>")
+        self.showHideAction.setShortcut(self.shortcut)
+
+        self.actions.append(self.showHideAction)
+
         self.dockwidget.setToggleVisibilityAction(self.showHideAction)
+        self.iface.registerMainWindowAction(self.showHideAction, self.shortcut)
 
         # Insert Plugin Button before the Statistical Summary Widget
         if add_to_toolbar:
@@ -114,8 +119,6 @@ class UniqueValuesViewer:
             self.iface.addPluginToMenu(self.menu, self.showHideAction)
 
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
-
-    #--------------------------------------------------------------------------
 
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
@@ -127,7 +130,7 @@ class UniqueValuesViewer:
 
         # remove this statement if dockwidget is to remain
         # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
+        # Commented next statement since it causes QGIS crash
         # when closing the docked window:
         # self.dockwidget = None
 
@@ -144,3 +147,4 @@ class UniqueValuesViewer:
                 action)
             self.iface.removeToolBarIcon(action)
             self.iface.attributesToolBar().removeAction(action)
+            self.iface.unregisterMainWindowAction(action)
