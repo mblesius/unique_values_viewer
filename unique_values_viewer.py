@@ -3,7 +3,7 @@
 /***************************************************************************
  UniqueValuesViewer
                                  A QGIS plugin
- A simple plugin that allows you to display the unique values for a field of
+ A simple plugin that allows you to display the unique values from a field of
  a vector layer in a widget. Values can be copied and corresponding features be
  selected through the widget.
 
