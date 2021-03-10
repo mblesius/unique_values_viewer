@@ -27,11 +27,11 @@
   Since this is the first published and a very early version of the plugin, not all features are matured, tested and 
   running perfectly fine. Hopefully, future development will help to improve the plugin. Suggestions and ideas are gladly welcome!
   
-#### Coming soon (v0.2):
+#### Coming soon ~April (v0.2):
 * [x] Improve the search function (include NULL values, sort text in alphabetical order, optimize for different field types like 'date' or 'time')
 * [x] Support for fields containing NULL-values
 * [x] Better handling of different field types (especially 'date' and 'datetime')
-* [x] Data type specific sorting (alphabetic vs. alphanumeric)
+* [x] Value type specific sorting (alphabetic vs. alphanumeric)
 * [x] Shortcut enabled
 * [x] Remove pandas dependency
   
