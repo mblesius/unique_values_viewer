@@ -22,20 +22,20 @@
 
   The "Selected features only" checkbox verifies that only the values of selected features are displayed. With the auto-update function, 
   the values will interactively change, when the selection changes.
+
+
+## Changelog v0.2:
+* Better handling of different field types (especially 'date' and 'datetime'), Support for fields containing NULL-values
+* Improve the search function (include NULL values, sort text in alphabetical order)
+* Value type specific sorting (alphabetic vs. alphanumeric)
+* New button to reverse the sort order
+* Shortcut enabled to open the Plugin (default: CTRL + ALT + U)
+* Option to synchronize Plugin map layer with active iface layer
+* Remove pandas dependency
+* Bugfixes and general improvements
   
-## Future Improvements
-  Since this is the first published and a very early version of the plugin, not all features are matured, tested and 
-  running perfectly fine. Hopefully, future development will help to improve the plugin. Suggestions and ideas are gladly welcome!
-  
-#### Coming soon ~April (v0.2):
-* [x] Improve the search function (include NULL values, sort text in alphabetical order, optimize for different field types like 'date' or 'time')
-* [x] Support for fields containing NULL-values
-* [x] Better handling of different field types (especially 'date' and 'datetime')
-* [x] Value type specific sorting (alphabetic vs. alphanumeric)
-* [x] Shortcut enabled
-* [x] Remove pandas dependency
-  
-#### Further ideas: 
+## Ideas for future improvements:
+Hopefully, future development will help to improve the plugin. Suggestions and ideas are gladly welcome!
 
 * [ ] Add support for multiple fields / field combinations
 * [ ] Enable support for other data providers, e.g. classified raster layers
