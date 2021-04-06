@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>359</width>
+    <width>310</width>
     <height>372</height>
    </rect>
   </property>
@@ -30,7 +30,7 @@
     <property name="bottomMargin">
      <number>2</number>
     </property>
-    <item row="1" column="0">
+    <item row="0" column="0">
      <widget class="QTabWidget" name="UVVTabWidget">
       <property name="palette">
        <palette>
@@ -455,10 +455,17 @@
         <string>Viewer</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="12" column="0">
-         <widget class="QLabel" name="valuesLbl">
+        <item row="16" column="0">
+         <widget class="QCheckBox" name="selectedOnlyBtn">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="toolTip">
+           <string>Return only unique values from selected features.
+This can affect performance.</string>
+          </property>
           <property name="text">
-           <string>Unique values</string>
+           <string>Selected features only</string>
           </property>
          </widget>
         </item>
@@ -469,6 +476,13 @@
           </property>
          </widget>
         </item>
+        <item row="12" column="0">
+         <widget class="QLabel" name="valuesLbl">
+          <property name="text">
+           <string>Unique values</string>
+          </property>
+         </widget>
+        </item>
         <item row="13" column="0" colspan="3">
          <widget class="QListWidget" name="listWidget">
           <property name="selectionMode">
@@ -476,17 +490,6 @@
           </property>
           <property name="sortingEnabled">
            <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="16" column="0">
-         <widget class="QCheckBox" name="selectedOnlyBtn">
-          <property name="toolTip">
-           <string>Only calculate unique values from selected features
-This can affect performance.</string>
-          </property>
-          <property name="text">
-           <string>Selected features only</string>
           </property>
          </widget>
         </item>
@@ -507,6 +510,33 @@ This can affect performance.</string>
           </property>
          </widget>
         </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QgsFieldComboBox" name="mFieldComboBox"/>
+        </item>
+        <item row="16" column="2">
+         <widget class="QPushButton" name="clearBtn">
+          <property name="toolTip">
+           <string>Clear list of unique values</string>
+          </property>
+          <property name="text">
+           <string>Clear</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="fieldLbl">
+          <property name="text">
+           <string>Target field</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="layerLbl">
+          <property name="text">
+           <string>Layer</string>
+          </property>
+         </widget>
+        </item>
         <item row="9" column="0" colspan="3">
          <widget class="QgsFilterLineEdit" name="valueSearch">
           <property name="placeholderText">
@@ -520,37 +550,10 @@ This can affect performance.</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="2">
-         <widget class="QgsFieldComboBox" name="mFieldComboBox"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="layerLbl">
-          <property name="text">
-           <string>Layer</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="fieldLbl">
-          <property name="text">
-           <string>Target field</string>
-          </property>
-         </widget>
-        </item>
-        <item row="16" column="2">
-         <widget class="QPushButton" name="clearBtn">
-          <property name="toolTip">
-           <string>Clear list of unique values</string>
-          </property>
-          <property name="text">
-           <string>Clear</string>
-          </property>
-         </widget>
-        </item>
         <item row="17" column="0">
          <widget class="QCheckBox" name="liveUpdateBtn">
           <property name="toolTip">
-           <string>Updates the unique values automatically when field has changed or layer changed. Be careful with large datasets.</string>
+           <string>Automatically updates the unique values when field or layer change or the active layer is removed. Be careful with large datasets.</string>
           </property>
           <property name="text">
            <string>Update values automatically</string>
@@ -558,11 +561,34 @@ This can affect performance.</string>
          </widget>
         </item>
         <item row="12" column="2">
-         <widget class="QPushButton" name="pushButton">
-          <property name="text">
-           <string/>
+         <layout class="QHBoxLayout" name="sortBtnPlaceholder">
+          <item>
+           <spacer name="sortBtnSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item row="16" column="1">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-         </widget>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
@@ -581,7 +607,7 @@ This can affect performance.</string>
             <number>2</number>
            </property>
            <item>
-            <widget class="QCheckBox" name="sortValuesBtn">
+            <widget class="QCheckBox" name="sortOptionBtn">
              <property name="toolTip">
               <string>Sort unique values displayed in the widget.</string>
              </property>
@@ -603,19 +629,6 @@ This can affect performance.</string>
              </property>
              <property name="checked">
               <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="clearOnChangeBtn">
-             <property name="toolTip">
-              <string>Cleares the values when the field or layer is changed.</string>
-             </property>
-             <property name="text">
-              <string>Clear values when field or layer changes</string>
-             </property>
-             <property name="checked">
-              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -667,11 +680,4 @@ This can affect performance.</string>
  </customwidgets>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="searchTxtOptions">
-   <property name="exclusive">
-    <bool>true</bool>
-   </property>
-  </buttongroup>
- </buttongroups>
 </ui>

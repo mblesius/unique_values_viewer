@@ -27,13 +27,14 @@
 
 import os
 
-from qgis.PyQt import QtWidgets, uic
+from qgis.PyQt import uic
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtCore import Qt, QEvent, pyqtSignal
 from qgis.PyQt.QtWidgets import (QAbstractItemView,
                                  QApplication,
                                  QAction,
                                  QListWidgetItem,
+                                 QToolButton,
                                  QMenu)
 from qgis.gui import QgsFilterLineEdit, QgsDockWidget
 from qgis.core import Qgis, QgsProject, QgsVectorLayer
@@ -41,7 +42,7 @@ from qgis.core import Qgis, QgsProject, QgsVectorLayer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'unique_values_viewer_dockwidget.ui'))
 
-# Commented providers are included in the combobox
+
 # TODO: Make plugin able to work with classified rasters and other data providers
 EXCLUDE_PROVIDERS = [
     'arcgisfeatureserver',
@@ -61,6 +62,18 @@ EXCLUDE_PROVIDERS = [
     'WFS',
     'wms'
 ]
+
+ICON_PATHS = {
+    'mActionDeselectActiveLayer': '/icons/mActionDeselectActiveLayer.svg',
+    'mActionEditCopy': '/icons/mActionEditCopy.svg',
+    'mActionSelectAll': '/icons/mActionSelectAll.svg',
+    'mIconSelectAdd': '/icons/mIconSelectAdd.svg',
+    'mIconSelected': '/icons/mIconSelected.svg',
+    'mIconSelectIntersect': '/icons/mIconSelectIntersect.svg',
+    'mIconSelectRemove': '/icons/mIconSelectRemove.svg',
+    'mSort': '/icons/mSort.svg',
+    'mSortReverse': '/icons/mSortReverse.svg'
+}
 
 
 class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
@@ -102,7 +115,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
     def __init__(self, iface, plugin_dir, parent=None):
         """Constructor."""
         super(UniqueValuesViewerDockWidget, self).__init__(parent)
-        # TODO: Maybe improve UI by replacing QListWidget with QgsListWidget
+
         self.setupUi(self)
         self.iface = iface
 
@@ -123,10 +136,13 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.no_features_selected = True
         self.null_item = QListWidgetItem("NULL [Null]")
 
+        # init and add sort button into the placeholder layout
+        self._init_sort()
+
         # install event filter for context menu
         self.listWidget.installEventFilter(self)
 
-        self.project.cleared.connect(self.change_project) # Minimum QGIS-Version 3.2
+        self.project.cleared.connect(self.change_project)  # Minimum QGIS-Version 3.2
 
         # connect widgets to slots
         self.clearBtn.clicked.connect(self.clear_listWidget)
@@ -136,7 +152,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
         self.liveUpdateBtn.toggled.connect(self.change_update_auto)
         self.selectedOnlyBtn.toggled.connect(self.change_only_selected_features)
-        self.sortValuesBtn.toggled.connect(self.change_sorting)
+        self.sortOptionBtn.toggled.connect(self.change_sorting)
         self.syncLayerBtn.toggled.connect(self.change_sync_layer)
 
         self.iface.currentLayerChanged.connect(self.sync_iface_layer_changed)
@@ -150,6 +166,19 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         # set initial field
         if self._mapLayer:
             self.change_layer()
+
+    def _init_sort(self) -> None:
+        """ Creates the sort action for the unique values and
+            inserts it into placeholder in the UI
+        """
+        self.sortAction = QAction(self.get_icon('mSortReverse'),
+                                  self.tr("Reverse Sorting"),
+                                  self)
+        self.sortAction.triggered.connect(self.sort_values)
+        self.sortAction.reverse = False
+        self.sortValuesBtn = QToolButton()
+        self.sortValuesBtn.setDefaultAction(self.sortAction)
+        self.sortBtnPlaceholder.insertWidget(-1, self.sortValuesBtn)
 
     def add_to_selection(self):
         """ """
@@ -186,7 +215,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             # TODO: Improve for different field types
             # find a better solution for date/time fields, when
             # the display_format is different from the field_format
-            # see als get_unique_values method
+            # also in the get_unique_values method
 
             expr = f"\"{self.field}\" in ("
 
@@ -237,6 +266,11 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
     def change_field(self, update=False):
         """ Changes the field property of the DockWidget Plugin Class """
+        # clear the listWidget to prevent issues when field changes and
+        # values are not updated automatically, i.e. when sorting the values
+        # from the field before
+        self.clear_listWidget()
+
         self.contains_null = None
         self.field = self.mFieldComboBox.currentField()
 
@@ -247,17 +281,13 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         if self.liveUpdateBtn.isChecked() == True:
             self.update_values()
             self.valueSearch.clearValue()
-        elif self.clearOnChangeBtn.isChecked() == True:
-            self.clear_listWidget()
 
     def change_layer(self):
         """ Changes the active layer for the plugin. Clears the
             ListWidget and adds the fields of the new layer, if
             present, to the field combo box
         """
-        if self.clearOnChangeBtn.isChecked() == True:
-            self.clear_listWidget()
-
+        # Disconnect slots if map layer still exists
         if self.mapLayer:
             try:
                 # disconnect old layer from willBeDeleted
@@ -266,13 +296,13 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 # Try to disconnect old current layer from selection change ...
                 if (self.liveUpdateBtn.isChecked() == True and
                    self.selectedOnlyBtn.isChecked() == True):
-
                     self.mapLayer.selectionChanged.disconnect()
                     self.mapLayer.subsetStringChanged.disconnect()
-            except TypeError:
-                print("TypeError in change_layer")
 
-        # ... change current layer property ...
+            except TypeError as e:
+                pass
+
+        # Change current layer property ...
         old_layer = self.mapLayer
         self.mapLayer = self.mMapLayerComboBox.currentLayer()
 
@@ -303,10 +333,9 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                     # trigger update_values when data source of old and new active layer is
                     # equal as for duplicated layers, because change_field is not triggered by
                     # setField in this case
-                    if old_layer.source().__eq__(self.mapLayer.source()):
+                    if old_layer and old_layer.source().__eq__(self.mapLayer.source()):
                         if self.liveUpdateBtn.isChecked() == True:
                             self.update_values()
-                            self.valueSearch.clearValue()
                 else:
                     field = self.mapLayer.fields()[0]
                     self.mFieldComboBox.setField(field.name())
@@ -322,26 +351,32 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         """ Enables functionality for updating the listwidget with the unique
             values on selection change if 'Only selected features' is checked
         """
-        # TODO: IMPROVE by disabling this connection when mapLayer has changed to 'None'
+        # Enable "Selected features only" only if active layer exists
         if self.mapLayer:
-            if (self.liveUpdateBtn.isChecked() == True and
-                    self.selectedOnlyBtn.isChecked() == True):
-                self.mapLayer.selectionChanged.connect(self.update_values)
-                self.mapLayer.selectionChanged.connect(self.refresh_active_layer)
+            if self.selectedOnlyBtn.isChecked() == True:
+                if self.liveUpdateBtn.isChecked() == True:
+                    self.mapLayer.selectionChanged.connect(self.update_values)
+                    self.mapLayer.selectionChanged.connect(self.refresh_active_layer)
             else:
-                try:
-                    self.mapLayer.selectionChanged.disconnect()
-                except TypeError:
-                    print("TypeError in change_only_selected_features")
-            self.update_values()
+                # Try to disconnect active layer from selectionChanged slots
+                if self.liveUpdateBtn.isChecked() == True:
+                    try:
+                        self.mapLayer.selectionChanged.disconnect()
+                    except TypeError as e:
+                        pass
+            if self.listWidget.count() > 0:
+                self.update_values()
 
     def change_sorting(self):
         """ Changes the sorting option for the ListWidgetItems """
-        # Do not use the sorting functionality of QListWidget
-        if self.sortValuesBtn.isChecked() == True:
+        # Do not use the sorting functionality of QListWidget, it will sort
+        # alphabetically
+        if self.sortOptionBtn.isChecked() == True:
             self.sorting_enabled = True
+            self.sortValuesBtn.setEnabled(True)
         else:
             self.sorting_enabled = False
+            self.sortValuesBtn.setEnabled(False)
 
     def change_sync_layer(self):
         """ Enables/disables synchronisation of active layer from iface
@@ -352,32 +387,35 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         else:
             try:
                 self.iface.currentLayerChanged.disconnect()
-            except TypeError:
-                print("TypeError in change_sync_layer")
+            except TypeError as e:
+                pass
 
     def change_update_auto(self):
-        """ Changes the widget to update the unique values on
-            Field change and Selection change
+        """ Changes the widget to update the unique values automatically
+            when active Field, Layer or Feature Selection changes
         """
-        # TODO: IMPROVE by disabling this connection when mapLayer has changed to None
         if self.mapLayer:
-            if (self.liveUpdateBtn.isChecked() == True
-               and self.selectedOnlyBtn.isChecked() == True):
-                self.mapLayer.selectionChanged.connect(self.update_values)
-                self.mapLayer.selectionChanged.connect(self.refresh_active_layer)
+            if self.liveUpdateBtn.isChecked() == True:
+                self.getValuesBtn.setEnabled(False)
                 self.mapLayer.subsetStringChanged.connect(self.update_values)  # minimum QGIS-Version 3.2
+                if self.selectedOnlyBtn.isChecked() == True:
+                    self.mapLayer.selectionChanged.connect(self.update_values)
+                    self.mapLayer.selectionChanged.connect(self.refresh_active_layer)
             else:
+                self.getValuesBtn.setEnabled(True)
                 try:
-                    self.mapLayer.selectionChanged.disconnect()
                     self.mapLayer.subsetStringChanged.disconnect()
-                except TypeError:
-                    print("TypeError in change_update_auto")
+                    if self.selectedOnlyBtn.isChecked() == True:
+                        self.mapLayer.selectionChanged.disconnect()
+                except TypeError as e:
+                    pass
 
     def clear_listWidget(self):
         """ Uses the native clear function to remove all list
             widget items and changes the values label
         """
         self.listWidget.clear()
+        self.sortValuesBtn.setEnabled(False)
         # Create a new null item, because it was deleted by line above
         self.null_item = QListWidgetItem("NULL [Null]")
         self.valuesLbl.setText("Unique values")
@@ -459,56 +497,17 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             items = self.listWidget.selectedItems()
 
             if items:
-                # Icon paths
-                addSelect_ipath = self.plugin_dir + '/icons/mIconSelectAdd.svg'
-                clearSelect_ipath = self.plugin_dir + '/icons/mActionDeselectActiveLayer.svg'
-                copyFeatures_ipath = self.plugin_dir + '/icons/mActionEditCopy.svg'
-                intersectSelect_ipath = self.plugin_dir + '/icons/mIconSelectIntersect.svg'
-                removeSelect_ipath = self.plugin_dir + '/icons/mIconSelectRemove.svg'
-                select_all_ipath = self.plugin_dir + '/icons/mActionSelectAll.svg'
-                selected_ipath = self.plugin_dir + '/icons/mIconSelected.svg'
-
                 # Create the context menu
                 context_menu = QMenu(self.listWidget)
 
                 # TODO: Shorten the code
-                # if only one value is selected
+                # Actions for "only one value is selected"
                 if len(items) == 1:
                     # Copy Actions
                     context_menu.addAction(u'Copy Value', self.copy_values)
                     context_menu.addAction(u'Copy Value as String',
                                            self.copy_values_string)
-                    context_menu.addAction(QIcon(copyFeatures_ipath),
-                                           u'Copy Features',
-                                           self.copy_features)
-                    context_menu.addSeparator()
-                    # Selection Actions
-                    if self.selectedOnlyBtn.isChecked() == True:
-                        context_menu.addAction(QIcon(intersectSelect_ipath),
-                                               u'Select Feature(s)',
-                                               self.select_features)
-                        context_menu.addAction(QIcon(removeSelect_ipath),
-                                               u'Remove from Selection',
-                                               self.remove_from_selection)
-                    else:
-                        context_menu.addAction(QIcon(selected_ipath),
-                                               u'Select Feature(s)',
-                                               self.select_features)
-                        context_menu.addAction(QIcon(addSelect_ipath),
-                                               u'Add to Selection',
-                                               self.add_to_selection)
-                    context_menu.addSeparator()
-                    context_menu.addAction(u'Select All Values',
-                                           self.select_all_values)
-                    context_menu.addAction(u'Deselect Value',
-                                           self.deselect_values)
-                # when more than one value is selected
-                else:
-                    # Copy Actions
-                    context_menu.addAction(u'Copy Values', self.copy_values)
-                    context_menu.addAction(u'Copy Values as String',
-                                           self.copy_values_string)
-                    context_menu.addAction(QIcon(copyFeatures_ipath),
+                    context_menu.addAction(self.get_icon('mActionEditCopy'),
                                            u'Copy Features',
                                            self.copy_features)
                     context_menu.addSeparator()
@@ -517,39 +516,112 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                        self.selectedOnlyBtn.isChecked() == False):
                         if (self.mapLayer.selectedFeatureCount() ==
                            self.mapLayer.featureCount()):
-                            context_menu.addAction(QIcon(clearSelect_ipath),
+                            context_menu.addAction(self.get_icon('mActionDeselectActiveLayer'),
                                                    u'Clear Selection',
                                                    self.clear_selection)
                         else:
-                            context_menu.addAction(QIcon(select_all_ipath),
+                            context_menu.addAction(self.get_icon('mActionSelectAll'),
                                                    u'Select All Features',
                                                    self.select_features)
-                        context_menu.addSeparator()
-                    # Selection Actions when all not values are selected
+                    # Feature Selection Actions for "not all values are selected"
                     else:
                         if self.selectedOnlyBtn.isChecked() == True:
-                            context_menu.addAction(QIcon(intersectSelect_ipath),
-                                                   u'Select Features',
+                            context_menu.addAction(self.get_icon('mIconSelectIntersect'),
+                                                   u'Select Feature(s)',
                                                    self.select_features)
-                            context_menu.addAction(QIcon(removeSelect_ipath),
+                            context_menu.addAction(self.get_icon('mIconSelectRemove'),
                                                    u'Remove from Selection',
                                                    self.remove_from_selection)
                         else:
-                            context_menu.addAction(QIcon(selected_ipath),
+                            context_menu.addAction(self.get_icon('mIconSelected'),
+                                                   u'Select Feature(s)',
+                                                   self.select_features)
+                            context_menu.addAction(self.get_icon('mIconSelectAdd'),
+                                                   u'Add to Selection',
+                                                   self.add_to_selection)
+                    context_menu.addSeparator()
+                    if self.listWidget.count() > 1:
+                        context_menu.addAction(u'Select All Values',
+                                               self.select_all_values)
+                        context_menu.addAction(u'Switch Selected Values',
+                                               self.switch_selected_values)
+                    context_menu.addAction(u'Deselect Value',
+                                           self.deselect_values)
+                # Actions for "more than one value is selected"
+                else:
+                    # Copy Actions
+                    context_menu.addAction(u'Copy Values', self.copy_values)
+                    context_menu.addAction(u'Copy Values as String',
+                                           self.copy_values_string)
+                    context_menu.addAction(self.get_icon('mActionEditCopy'),
+                                           u'Copy Features',
+                                           self.copy_features)
+                    context_menu.addSeparator()
+                    # Feature Selection Actions for "all values are selected"
+                    if (len(items) == self.listWidget.count() and
+                       self.selectedOnlyBtn.isChecked() == False):
+                        if (self.mapLayer.selectedFeatureCount() ==
+                           self.mapLayer.featureCount()):
+                            context_menu.addAction(self.get_icon('mActionDeselectActiveLayer'),
+                                                   u'Clear Selection',
+                                                   self.clear_selection)
+                        else:
+                            context_menu.addAction(self.get_icon('mActionSelectAll'),
+                                                   u'Select All Features',
+                                                   self.select_features)
+                        context_menu.addSeparator()
+                    # Feature Selection Actions for "not all values are selected"
+                    else:
+                        if self.selectedOnlyBtn.isChecked() == True:
+                            context_menu.addAction(self.get_icon('mIconSelectIntersect'),
+                                                   self.tr(u'Select Features'),
+                                                   self.select_features)
+                            context_menu.addAction(self.get_icon('mIconSelectRemove'),
+                                                   u'Remove from Selection',
+                                                   self.remove_from_selection)
+                        else:
+                            context_menu.addAction(self.get_icon('mIconSelected'),
                                                    u'Select Features',
                                                    self.select_features)
-                            context_menu.addAction(QIcon(addSelect_ipath),
+                            context_menu.addAction(self.get_icon('mIconSelectAdd'),
                                                    u'Add to Selection',
                                                    self.add_to_selection)
                         context_menu.addSeparator()
                         context_menu.addAction(u'Select All Values',
                                                self.select_all_values)
+                        context_menu.addAction(u'Switch Selected Values',
+                                               self.switch_selected_values)
                     context_menu.addAction(u'Deselect Values',
                                            self.deselect_values)
 
                 context_menu.exec_(event.globalPos())
                 return True
         return super(UniqueValuesViewerDockWidget, self).eventFilter(source, event)
+
+    def get_icon(self, ikey):
+        """ Returns the icon path for the key ikey from the ICON_PATHS
+            dictionary
+            :returns: An icon specified by ikey
+            :rtype: QIcon
+        """
+        try:
+            path = self.plugin_dir + ICON_PATHS[ikey]
+            return QIcon(path)
+        except KeyError:
+            return QIcon(None)
+
+    def get_sort_key(self):
+        """ Based on the field type of the active field, the key for sorting
+            the values (alphabetically, alphanumerically) is returned
+        """
+        if self.fieldType.lower() in {"double", "real"}:
+            return float
+        elif self.fieldType.lower() == "integer":
+            return int
+        elif self.fieldType.lower() == "integer64":  # not sure if this works properly for int64
+            return int
+        else:
+            return None
 
     def get_unique_values(self):
         """ Returns a list of string of unique values from the active field from all
@@ -573,24 +645,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             # If field contains datetime values, then convert them to string with toString method
             # and check if Field Format in QgsEditorWidgetSetup was changed
             if self.fieldType.lower() in {'datetime', 'date'}:
-                try:
-                    # TODO: Implement selection for datetime fields with custom display_format!
-                    # get QgsEditorWidgetSetup Config for the active Date or DateTime field
-                    field_config = self.mapLayer.editorWidgetSetup(idx).config() # Vielleicht hier die property field erweitern
-                    display_format = field_config["display_format"]
-                    field_format = field_config["field_format"]
-                    iso_format = field_config["field_iso_format"]
-                # catch KeyError if QgsEditorWidgetSetup.config() returns an empty dictionary
-                # or one of the required keys is missing
-                except KeyError:
-                    str_set = {str(v) if v.isNull() else v.toString(Qt.ISODate) for v in v_set}
-                else:
-                    if not field_format.__eq__(display_format):
-                        str_set = {str(v) if v.isNull()
-                                   else f"{v.toString(display_format)} [{v.toString(field_format)}]"
-                                   for v in v_set}
-                    else:
-                        str_set = {str(v) if v.isNull() else v.toString(field_format) for v in v_set}
+                str_set = {str(v) if v.isNull() else v.toString(Qt.ISODate) for v in v_set}
             else:
                 str_set = {str(v) for v in v_set}
 
@@ -620,19 +675,9 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.contains_null = False
 
         # Sorting
+        sort_key = self.get_sort_key()
         if self.sorting_enabled:
-            if self.fieldType.lower() in {"string", "time", "date",
-                                          "datetime",
-                                          "boolean"}:
-                return sorted(str_set)
-            elif self.fieldType.lower() in {"double", "real"}:
-                return sorted(str_set, key=float)
-            elif self.fieldType.lower() == "integer":
-                return sorted(str_set, key=int)
-            elif self.fieldType.lower() == "integer64":
-                return sorted(str_set, key=int)
-            else:
-                return sorted(str_set)
+            return sorted(str_set, key=sort_key, reverse=self.sortAction.reverse)
         else:
             return list(str_set)
 
@@ -676,6 +721,10 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         """
         text = self.valueSearch.text()
 
+        # disable sort option while searching is active
+        if self.sortOptionBtn.isChecked() == True:
+            self.sortValuesBtn.setEnabled(False)
+
         # Only search if text is not empty
         if text:
             # TODO: Improve Search, some ideas:
@@ -710,23 +759,57 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
     def select_features(self):
         """ Select features based on unique values """
         items = self.listWidget.selectedItems()
+        # Select all features if all values are selected
         if (len(items) == self.listWidget.count() and
                 self.selectedOnlyBtn.isChecked() == False):
             self.mapLayer.selectAll()
-            print("Alle ausgewählt")
         else:
             expr = self.build_expression()
             self.mapLayer.selectByExpression(expr)
             # Update values for list widget
             if self.selectedOnlyBtn.isChecked() == True:
                 self.update_values()
-            print(expr)
+            # print(f"Selection Expression: {expr}")
+
+    def sort_values(self):
+        """ Sorts the values in the ListWidget either ascending
+            or descending, based on the sort buttons reverse
+            attribute
+        """
+        if not self.sorting_enabled:
+            pass
+
+        elif self.unique_values and len(self.unique_values) > 1:
+
+            sort_key = self.get_sort_key()
+
+            # Change sort icon
+            if self.sortAction.reverse:
+                self.sortValuesBtn.setIcon(self.get_icon('mSort'))
+            else:
+                self.sortValuesBtn.setIcon(self.get_icon('mSortReverse'))
+
+            # Change sort order
+            self.sortAction.reverse = not self.sortAction.reverse
+
+            # Sort values
+            self.unique_values = sorted(self.unique_values, key=sort_key,
+                                        reverse=self.sortAction.reverse)
+
+            # Update ListWidget with sorted values
+            self.clear_listWidget()
+            if self.contains_null:
+                self.listWidget.addItem(self.null_item)
+            self.listWidget.addItems(self.unique_values)
+            self.valuesLbl.setText(f"Unique values [{len(self.unique_values)}]")
+            self.sortValuesBtn.setEnabled(True)
 
     def show_values(self):
-        """ Shows all items of the listwidget after clearing the searchbar
-            and if the items were hidden
-        """
-        print(self.valueSearch.clearMode())
+        """ Makes all items of the listWidget unhidden """
+        # disable sort option while searching is active
+        if self.sortOptionBtn.isChecked() == True:
+            self.sortValuesBtn.setEnabled(True)
+
         for i in range(self.listWidget.count()):
             if self.listWidget.item(i).isHidden():
                 self.listWidget.item(i).setHidden(False)
@@ -745,16 +828,28 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 if layer.dataProvider().name() not in EXCLUDE_PROVIDERS:
                     self.mMapLayerComboBox.setLayer(layer)
 
+    def switch_selected_values(self):
+        """ Switch selection of unique values in ListWidget """
+        # Remember which values were selected
+        old_selection = self.listWidget.selectedItems()
+        # Select all values
+        self.select_all_values()
+        # Deselect all values which were selected before
+        for item in old_selection:
+            item.setSelected(False)
+
     def update_values(self):
         """ Updates the values in the list widget """
+        self.valueSearch.clearValue()
         self.clear_listWidget()
+
         if self.listWidget.selectionMode() == QAbstractItemView.NoSelection:
             self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.listWidget.setStyleSheet("QListWidget {font-style:normal;}")
 
         # Get unique values, convert to list and sort
         if self.mMapLayerComboBox.currentLayer() is not None:
-            print("update")
+            # print("update")
             self.unique_values = []
             try:
                 values = self.get_unique_values()
@@ -762,7 +857,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 if (self.selectedOnlyBtn.isChecked() == True
                    and self.mapLayer.selectedFeatureCount() != 0):
                     pass
-                    #self.layerRefresh(self.mapLayer)
+                    # self.layerRefresh(self.mapLayer)
 
                 if self.no_features_selected:
                     self.listWidget.addItem(QListWidgetItem("No features selected"))
@@ -785,12 +880,10 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                                                     "An error occurred when calculating the set of unique values",
                                                     level=Qgis.Critical,
                                                     duration=2)
-            #else:
-            #    self.iface.messageBar().pushMessage("Error",
-            #                                        "An unknown Error occurred",
-            #                                        level=Qgis.Critical,
-            #                                        duration=2)
             else:
                 # Add unique values as items to list widget
                 self.unique_values = values
                 self.listWidget.addItems(self.unique_values)
+                if self.sortOptionBtn.isChecked() == True:
+                    self.sortValuesBtn.setEnabled(True)
+
