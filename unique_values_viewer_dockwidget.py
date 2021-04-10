@@ -317,7 +317,6 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             if (self.liveUpdateBtn.isChecked() == True and
                     self.selectedOnlyBtn.isChecked() == True):
                 self.mapLayer.selectionChanged.connect(self.update_values)
-                self.mapLayer.selectionChanged.connect(self.refresh_active_layer)
                 self.mapLayer.subsetStringChanged.connect(self.update_values)
 
             self.mapLayer.willBeDeleted.connect(self.clear_connections)
@@ -356,12 +355,11 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             if self.selectedOnlyBtn.isChecked() == True:
                 if self.liveUpdateBtn.isChecked() == True:
                     self.mapLayer.selectionChanged.connect(self.update_values)
-                    self.mapLayer.selectionChanged.connect(self.refresh_active_layer)
             else:
                 # Try to disconnect active layer from selectionChanged slots
                 if self.liveUpdateBtn.isChecked() == True:
                     try:
-                        self.mapLayer.selectionChanged.disconnect()
+                        self.mapLayer.selectionChanged.disconnect(self.update_values)
                     except TypeError as e:
                         pass
             if self.listWidget.count() > 0:
@@ -386,7 +384,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.iface.currentLayerChanged.connect(self.sync_iface_layer_changed)
         else:
             try:
-                self.iface.currentLayerChanged.disconnect()
+                self.iface.currentLayerChanged.disconnect(self.sync_iface_layer_changed)
             except TypeError as e:
                 pass
 
@@ -400,13 +398,12 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 self.mapLayer.subsetStringChanged.connect(self.update_values)  # minimum QGIS-Version 3.2
                 if self.selectedOnlyBtn.isChecked() == True:
                     self.mapLayer.selectionChanged.connect(self.update_values)
-                    self.mapLayer.selectionChanged.connect(self.refresh_active_layer)
             else:
                 self.getValuesBtn.setEnabled(True)
                 try:
-                    self.mapLayer.subsetStringChanged.disconnect()
+                    self.mapLayer.subsetStringChanged.disconnect(self.update_values)
                     if self.selectedOnlyBtn.isChecked() == True:
-                        self.mapLayer.selectionChanged.disconnect()
+                        self.mapLayer.selectionChanged.disconnect(self.update_values)
                 except TypeError as e:
                     pass
 
@@ -422,8 +419,8 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
     def clear_connections(self):
         """  """
-        self.mapLayer.selectionChanged.disconnect()
-        self.mapLayer.subsetStringChanged.disconnect()  # Minimum QGIS-Version 3.2
+        self.mapLayer.selectionChanged.disconnect(self.update_values)
+        self.mapLayer.subsetStringChanged.disconnect(self.update_values)  # Minimum QGIS-Version 3.2
         self.mapLayer = None
         self.change_layer()
 
@@ -698,12 +695,6 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         """
         if self.iface.mapCanvas().isCachingEnabled():
             lyr.triggerRepaint()
-        else:
-            self.iface.mapCanvas().refresh()
-
-    def refresh_active_layer(self):
-        if self.iface.mapCanvas().isCachingEnabled():
-            self.mapLayer.triggerRepaint()
         else:
             self.iface.mapCanvas().refresh()
 
