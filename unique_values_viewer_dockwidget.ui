@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>310</width>
+    <width>283</width>
     <height>372</height>
    </rect>
   </property>
@@ -455,6 +455,37 @@
         <string>Viewer</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
+        <item row="4" column="0">
+         <widget class="QLabel" name="fieldLbl">
+          <property name="text">
+           <string>Target field</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="searchLbl">
+          <property name="text">
+           <string>Search values:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0">
+         <widget class="QLabel" name="valuesLbl">
+          <property name="text">
+           <string>Unique values</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="3">
+         <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox">
+          <property name="showCrs">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0" colspan="2">
+         <widget class="QgsFieldComboBox" name="mFieldComboBox"/>
+        </item>
         <item row="16" column="0">
          <widget class="QCheckBox" name="selectedOnlyBtn">
           <property name="enabled">
@@ -469,37 +500,6 @@ This can affect performance.</string>
           </property>
          </widget>
         </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Search values:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="valuesLbl">
-          <property name="text">
-           <string>Unique values</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0" colspan="3">
-         <widget class="QListWidget" name="listWidget">
-          <property name="selectionMode">
-           <enum>QAbstractItemView::ExtendedSelection</enum>
-          </property>
-          <property name="sortingEnabled">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <widget class="QgsMapLayerComboBox" name="mMapLayerComboBox">
-          <property name="showCrs">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
         <item row="5" column="2">
          <widget class="QPushButton" name="getValuesBtn">
           <property name="toolTip">
@@ -510,8 +510,22 @@ This can affect performance.</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="2">
-         <widget class="QgsFieldComboBox" name="mFieldComboBox"/>
+        <item row="0" column="0">
+         <widget class="QLabel" name="layerLbl">
+          <property name="text">
+           <string>Layer</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0" colspan="3">
+         <widget class="UVVListWidget" name="listWidget">
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item row="16" column="2">
          <widget class="QPushButton" name="clearBtn">
@@ -520,20 +534,6 @@ This can affect performance.</string>
           </property>
           <property name="text">
            <string>Clear</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="fieldLbl">
-          <property name="text">
-           <string>Target field</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="layerLbl">
-          <property name="text">
-           <string>Layer</string>
           </property>
          </widget>
         </item>
@@ -549,6 +549,19 @@ This can affect performance.</string>
            <string notr="true"/>
           </property>
          </widget>
+        </item>
+        <item row="16" column="1">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item row="17" column="0">
          <widget class="QCheckBox" name="liveUpdateBtn">
@@ -575,20 +588,14 @@ This can affect performance.</string>
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QToolButton" name="toolButton">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
          </layout>
-        </item>
-        <item row="16" column="1">
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>
@@ -598,7 +605,7 @@ This can affect performance.</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QgsCollapsibleGroupBox" name="genOptionsGrp">
+         <widget class="QgsCollapsibleGroupBox" name="generalOptionsGrp">
           <property name="title">
            <string>General options</string>
           </property>
@@ -632,11 +639,197 @@ This can affect performance.</string>
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="runTasksBtn">
+             <property name="text">
+              <string>Run calculations as background tasks</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
         <item>
-         <spacer name="verticalSpacer">
+         <widget class="QgsCollapsibleGroupBox" name="mGroupBox_2">
+          <property name="title">
+           <string>Display</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QRadioButton" name="rawValuesRBtn">
+             <property name="text">
+              <string>Raw values</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">dispOptionGrp</string>
+             </attribute>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="formValuesRBtn">
+             <property name="text">
+              <string>Formatted values</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">dispOptionGrp</string>
+             </attribute>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="bothValuesRBtn">
+             <property name="text">
+              <string>Both</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string notr="true">dispOptionGrp</string>
+             </attribute>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
+          <property name="title">
+           <string>Copy</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="0">
+            <widget class="QLabel" name="quoteCharLbl">
+             <property name="text">
+              <string>Quoting Character</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="quoteCharCBox">
+             <property name="currentText">
+              <string>'</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>'</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>&quot;</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>´</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>`</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Space</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Other</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="sepCharLbl">
+             <property name="toolTip">
+              <string>The separation character that is used when copying more than one value from the list of values.</string>
+             </property>
+             <property name="text">
+              <string>Separation Character</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLineEdit" name="sep_char_custom">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="sepCharCBox">
+             <item>
+              <property name="text">
+               <string>New Line</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Space</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Tab</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>;</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>,</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Other</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <spacer name="hSpacerCopy2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLineEdit" name="quote_char_custom">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <spacer name="hSpacerCopy1">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="vSpacerSettingsBottom">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
@@ -647,6 +840,30 @@ This can affect performance.</string>
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="resetDefaultsBtn">
+            <property name="text">
+             <string>Reset to Defaults</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -677,7 +894,15 @@ This can affect performance.</string>
    <extends>QComboBox</extends>
    <header>qgsmaplayercombobox.h</header>
   </customwidget>
+  <customwidget>
+   <class>UVVListWidget</class>
+   <extends>QListWidget</extends>
+   <header>unique_values_viewer.core.widgets</header>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="dispOptionGrp"/>
+ </buttongroups>
 </ui>

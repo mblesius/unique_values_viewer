@@ -12,7 +12,7 @@
         begin                : 2020-09-18
         git sha              : $Format:%H$
         copyright            : (C) 2021 by Malik Blesius
-        email                : malik.blesius@foea.de
+        email                : malik@blesius.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -69,10 +69,10 @@ class UniqueValuesViewer:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&Unique Values Viewer')
-        self.shortcut = "Ctrl+Alt+U"
+        self.menu = self.tr('&Unique Values Viewer')
+        self.shortcut = 'Ctrl+Alt+U'
 
-        #print "** INITIALIZING UniqueValuesViewer"
+        print("** INITIALIZING UniqueValuesViewer")
         self.pluginIsActive = True
 
         self.dockwidget = UniqueValuesViewerDockWidget(self.iface,
@@ -99,7 +99,7 @@ class UniqueValuesViewer:
         add_to_toolbar=True):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/unique_values_viewer/icon.png'
+        icon_path = self.plugin_dir + '/resources/icons/icon.svg'
 
         self.showHideAction = QAction(QIcon(icon_path), u'UniqueValuesViewer', self.dockwidget)
         self.showHideAction.setObjectName(u"mUniqueValuesViewer")
@@ -123,28 +123,22 @@ class UniqueValuesViewer:
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
-        #print "** CLOSING UniqueValuesViewer"
+        print("** CLOSING UniqueValuesViewer")
 
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
-
-        # remove this statement if dockwidget is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crash
-        # when closing the docked window:
-        # self.dockwidget = None
 
         self.pluginIsActive = False
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        #print "** UNLOAD UniqueValuesViewer"
+        print("** UNLOAD UniqueValuesViewer")
 
         for action in self.actions:
             self.iface.removePluginVectorMenu(
-                self.tr(u'&Unique Values Viewer'),
+                self.tr('&Unique Values Viewer'),
                 action)
             self.iface.removeToolBarIcon(action)
-            self.iface.attributesToolBar().removeAction(action)
             self.iface.unregisterMainWindowAction(action)
+            self.iface.attributesToolBar().removeAction(action)
