@@ -31,11 +31,13 @@ import os.path
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QShortcut
+from qgis.core import Qgis, QgsMessageLog
 # Initialize Qt resources from file resources.py
 from .resources import *
 
 # Import the code for the DockWidget
 from .unique_values_viewer_dockwidget import UniqueValuesViewerDockWidget
+from unique_values_viewer.core.settings import UVVSettings
 
 
 class UniqueValuesViewer:
@@ -72,9 +74,13 @@ class UniqueValuesViewer:
         self.menu = self.tr('&Unique Values Viewer')
         self.shortcut = 'Ctrl+Alt+U'
 
-        print("** INITIALIZING UniqueValuesViewer")
+        QgsMessageLog.logMessage("** INITIALIZING UniqueValuesViewer", level=Qgis.Info)
         self.pluginIsActive = True
 
+        # Settings
+        self.settings = UVVSettings()
+
+        # Dockwidget
         self.dockwidget = UniqueValuesViewerDockWidget(self.iface,
                                                        self.plugin_dir)
 
@@ -93,10 +99,7 @@ class UniqueValuesViewer:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('UniqueValuesViewer', message)
 
-    def initGui(
-        self,
-        add_to_menu=True,
-        add_to_toolbar=True):
+    def initGui(self, add_to_menu=True, add_to_toolbar=True):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
         icon_path = self.plugin_dir + '/resources/icons/icon.svg'
@@ -123,7 +126,7 @@ class UniqueValuesViewer:
     def onClosePlugin(self):
         """Cleanup necessary items here when plugin dockwidget is closed"""
 
-        print("** CLOSING UniqueValuesViewer")
+        QgsMessageLog.logMessage("** CLOSING UniqueValuesViewer", level=Qgis.Info)
 
         # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
@@ -133,7 +136,7 @@ class UniqueValuesViewer:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
-        print("** UNLOAD UniqueValuesViewer")
+        QgsMessageLog.logMessage("** UNLOAD UniqueValuesViewer", level=Qgis.Info)
 
         for action in self.actions:
             self.iface.removePluginVectorMenu(
