@@ -54,20 +54,21 @@ EXCLUDE_PROVIDERS = {
 
 
 class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
-    """ Dockwidget for the plugin. """
+    """DockWidget for the plugin."""
 
     closingPlugin = pyqtSignal()
 
     @property
     def active_layer(self):
-        """ Getter method for the current map layer of the combo box """
+        """Getter method for the current map layer of the combo box."""
         return self._map_layer
 
     @active_layer.setter
     def active_layer(self, layer):
-        """ Setter method for the current map layer of the combo box
-        @param layer: A vector layer in the project to be set for the plugin
-        @type layer: QgsVectorLayer
+        """Setter method for the current map layer of the combo box.
+
+        Parameters:
+            layer(QgsVectorLayer): Vector layer to be set for the plugin.
         """
         self._map_layer = layer
 
@@ -91,8 +92,8 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
     @property
     def unique_values(self) -> set:
-        """ The unique values property saving the unique
-        attribute values of the active field """
+        """The unique values property saving the unique
+        attribute values of the active field."""
         return self._unique_values
 
     @unique_values.setter
@@ -108,7 +109,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
     @property
     def project(self):
-        """ Getter method for the current QGIS project instance"""
+        """Getter method for the current QGIS project instance."""
         return QgsProject.instance()
 
     def __init__(self, iface, plugin_dir, settings, parent=None):
@@ -150,7 +151,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.mMapLayerComboBox.setLayer(self.iface.activeLayer())
 
     def _init_connections(self) -> None:
-        """ Sets up necessary signal/slot connections for the UI. """
+        """Sets up necessary signal/slot connections for the UI."""
         # buttons
         self.clearBtn.clicked.connect(self.clear_listWidget_button)
         self.getValuesBtn.clicked.connect(self.update_values)
@@ -177,7 +178,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.resetDefaultsBtn.clicked.connect(self.reset_settings)
 
     def _init_sort(self) -> None:
-        """ Creates the sort action for the values in the listWidget
+        """Creates the sort action for the values in the listWidget
         and inserts it into placeholder in the UI.
         """
         self.sort_action = QAction(QgsApplication.getThemeIcon('/sort-reverse.svg'),
@@ -190,19 +191,19 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.sortBtnPlaceholder.insertWidget(-1, self.sortValuesBtn)
 
     def add_to_selection(self) -> None:
-        """ Adds values corresponding to selected list widget
+        """Adds values corresponding to selected list widget
         items to current selection.
         """
         expr = self.build_expression()
         self.active_layer.selectByExpression(expr, behavior=QgsVectorLayer.AddToSelection)
 
     def build_expression(self) -> str:
-        """ Builds an expression based on the selected unique values
-        of the current attribute field, that can for example be used
-        to filter the layer or select the corresponding features.
+        """Builds a filter expression based on the selected unique values
+        of the current attribute field. The expression can be used to set
+        a subset string to filter the layer or to select features.
 
-        :returns: The expression to use in the expression builder for selection
-        :rtype: str
+        Returns:
+            The expression to use in the expression builder for selection.
         """
 
         # check if active_field contains NULL-Values through null_item of list widget
@@ -274,12 +275,13 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         return expr
 
     def calc_unique_values(self) -> {str}:
-        """ Returns the unique values from the active field as set of strings,
-            either calculated for all or only for the selected features.
-            It will return an empty list if no features are selected while the
-            option is checked.
-            @return: Set of unique values
-            @type: Set[str]
+        """Returns the unique values from the active field as set of strings,
+        either calculated for all or only for the selected features.
+        It will return an empty list if no features are selected while the
+        option is checked.
+
+        Returns:
+            Set of unique values as str.
         """
         # Get index for active_field
         idx = self.active_layer.fields().indexFromName(self.active_field)
@@ -341,7 +343,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         return str_set
 
     def change_field(self) -> None:
-        """ Changes the active_field property of the DockWidget Plugin Class """
+        """Changes the active_field property of the DockWidget Plugin Class."""
         # evaluate if new field is the same as the old field
         fields = self.active_layer.fields()
         new_field = self.mFieldComboBox.currentField()
@@ -378,9 +380,10 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 self.update_values()
 
     def change_layer(self) -> None:
-        """ Changes the active layer for the plugin. Clears the
-        ListWidget and adds the fields of the new layer, if
-        present, to the field combo box
+        """Changes the active layer for the plugin.
+
+        Clears the ListWidget and adds the fields of the new layer,
+        if present, to the field combo box.
         """
         new_layer = self.mMapLayerComboBox.currentLayer()
         # Check if a new layer is available in combobox ...
@@ -436,17 +439,17 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 return None
 
     def change_project(self) -> None:
-        """ Triggered when the current QGIS Project is changed, cleared
-         or closed """
+        """Triggered when the current QGIS Project is changed, cleared
+         or closed."""
         self.clear_listWidget()
         self.liveUpdateBtn.setChecked(False)
         self.selectedOnlyBtn.setChecked(False)
         self.enable_updates(True)
 
     def change_only_selected_features(self) -> None:
-        """ Changes whether only selected features of active layer will be
-            used for calculation of unique values.
-            (Dis)Connects necessary signals to slots
+        """Changes whether only selected features of active layer will be
+        used for calculation of unique values.
+         (Dis)Connects necessary signals to slots.
         """
         # Enable "Selected features only" only if active layer exists
         if self.active_layer is not None:
@@ -481,8 +484,8 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.sortValuesBtn.setEnabled(False)
 
     def change_sync_layer(self, state: int) -> None:
-        """ Enables/disables synchronisation of active layer from iface
-        with active layer of plugin/combo box
+        """Enables/disables synchronisation of active layer from iface
+        with active layer of plugin/combo box.
         :param state: Checkstate of the QCheckbox that is connected
         """
         if state == 2:  # Qt.Checked
@@ -497,8 +500,8 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 self.settings.setValue('sync_layer', state)
 
     def change_live_update(self) -> None:
-        """ Changes the widget to update the unique values automatically
-            when active Field, Layer or Feature Selection changes
+        """Changes the widget to update the unique values automatically
+        when active Field, Layer or Feature Selection changes.
         """
         if self.active_layer:
             if self.liveUpdateBtn.isChecked() is True:
@@ -517,7 +520,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                     traceback.print_exc()
 
     def clear_listWidget(self) -> None:
-        """ Uses the native clear function to remove all list
+        """Uses the native clear function to remove all list
         widget items and changes the values label.
         """
         self.listWidget.clear()
@@ -527,10 +530,10 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.valuesLbl.setText(self.tr("Unique values"))
 
     def clear_listWidget_button(self) -> None:
-        """ Clears the list widget when clicked on the clear button
+        """Clears the list widget when clicked on the clear button
         and deletes the unique values property. When 'Selected
         features only' is checked, then it also clears the active
-        selection of the layer. """
+        selection of the layer."""
         self.clear_listWidget()
 
         del self.unique_values
@@ -540,7 +543,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.active_layer.removeSelection()
 
     def clear_connections(self) -> None:
-        """  """
+        """Clears connections between active layer and dockwidget buttons."""
         if self.liveUpdateBtn.isChecked() is True:
             self.active_layer.selectionChanged.disconnect(self.update_values)
             self.active_layer.subsetStringChanged.disconnect(self.update_values)  # Minimum QGIS-Version 3.2
@@ -744,7 +747,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         return super(UniqueValuesViewerDockWidget, self).eventFilter(source, event)
 
     def filter_layer(self) -> None:
-        """ Filters layer based on selected unique values in dockwidget """
+        """Filter layer based on selected unique values in dockwidget."""
         expr = self.build_expression()
         self.active_layer.setSubsetString(expr)
         # Remove non-filtered values from listWidget and unique values property
@@ -757,14 +760,14 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.intersect_values(items)
 
     def intersect_values(self, items) -> None:
-        """ Intersects values corresponding to ``items´´ with unique values property
+        """Intersects values corresponding to ``items´´ with unique values property
         @param items: List[QListWidgetItem]
         """
         values_to_intersect = {item.text() for item in items}
         self.unique_values &= values_to_intersect
 
     def keyPressEvent(self, event) -> None:
-        """ Event to clear the searchbar when Escape-Key was pressed """
+        """Event to clear the searchbar when Escape-Key was pressed."""
         if self.valueSearch.hasFocus() and event.key() == Qt.Key_Escape:
             self.valueSearch.clearValue()
             self.valueSearch.clearFocus()
@@ -786,7 +789,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.remove_values(items)
 
     def remove_values(self, items) -> None:
-        """ Removes values corresponding to ``items´´ from unique values property
+        """Removes values corresponding to ``items´´ from unique values property.
         @param items: List[QListWidgetItem]
         """
         # create set of selected values from selected items
@@ -794,7 +797,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.unique_values -= values_to_remove
 
     def reset_settings(self) -> None:
-        """ Restores the default settings """
+        """Restores the default settings."""
         self.enable_updates(False)
         self.settings.restore_defaults()
 
@@ -807,7 +810,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
     def search_values(self) -> None:
         """Searches ListWidget for matching values and updates it to
-        only show the matching ones"""
+        only show the matching ones."""
         text = self.valueSearch.text()
 
         # disable sort option while searching is active
@@ -839,7 +842,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                     item.setHidden(False)
 
     def select_features(self) -> None:
-        """Select features corresponding to selected values from the listWidget"""
+        """Select features corresponding to selected values from the listWidget."""
         items = self.listWidget.selectedItems()
         # Select all features if all values are selected
         if (len(items) == self.listWidget.count() and
@@ -855,19 +858,20 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 self.listWidget.switchSelectedItems()
                 delete_list_widget_items(self.listWidget.selectedItems(), self.listWidget)
                 self.intersect_values(items)
-        QgsMessageLog.logMessage(f"Selection Expression: {expr}", level=Qgis.Info)
+            QgsMessageLog.logMessage(f"Selection Expression: {expr}", level=Qgis.Info)
 
     def setting_changed(self, key: str, value: str) -> None:
         """Change the setting ``key´´ to ``value´´.
-        :param key: The name of the QgsSetting
-        :param value: The new value for the QgsSetting
+
+        Parameters:
+            key(str): The name of the QgsSetting
+            value(str): The new value for the QgsSetting
         """
         self.settings.setValue(key, value)
 
     def sort_values(self) -> None:
-        """Sorts the values in the ListWidget either ascending
-        or descending, based on the sort buttons reverse
-        attribute"""
+        """Sorts the values in the ListWidget.
+        Based on the sort button, ascending or descending sorting is used."""
         if not self.listWidget.sorting_enabled:
             return None
 
@@ -898,7 +902,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.sortValuesBtn.setEnabled(True)
 
     def show_items(self) -> None:
-        """Makes all items of the listWidget unhidden"""
+        """Makes all items of the listWidget unhidden."""
         # disable sort option while searching is active
         if self.sortOptionBtn.isChecked() is True:
             self.sortValuesBtn.setEnabled(True)
@@ -910,10 +914,10 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
     def sync_iface_layer_changed(self, layer) -> None:
         """Sets the new active layer of the QGIS interface to be the
         current layer in the combobox if its data provider is not in
-        the list of excluded providers
+        the list of excluded providers.
 
-        @param layer: The new active iface layer, automatically given
-        @type layer: QgsMapLayer
+        Parameters:
+            layer(QgsMapLayer): The new active layer
         """
         if layer is not None:
             # Only sync active iface layer with plugin active layer if
@@ -924,7 +928,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 self.mMapLayerComboBox.setLayer(layer)
 
     def update_values(self) -> None:
-        """ Updates the values in the list widget """
+        """Updates the values in the list widget."""
         # Only do something if the plugin widget is visible to the user
         # to prevent auto updates in the background when the iface active
         # layer is changed
