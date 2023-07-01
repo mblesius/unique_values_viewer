@@ -10,6 +10,8 @@ from qgis.PyQt.QtWidgets import (QAbstractItemView,
                                  QListWidget,
                                  QListWidgetItem)
 
+from unique_values_viewer.core.settings import UVVSettings
+
 
 def delete_list_widget_items(items, parent) -> None:
     """ Removes and deletes a list of ``items´´ from a ``parent´´
@@ -29,23 +31,27 @@ def delete_list_widget_items(items, parent) -> None:
 class UVVListWidget(QListWidget):
 
     @property
-    def no_selection(self):
+    def no_selection(self) -> bool:
         """ Getter method for no_selection"""
         return self._no_selection
 
     @no_selection.setter
-    def no_selection(self, status):
+    def no_selection(self, status: bool):
         """ Setter method for no_selection"""
+        if type(status) != bool:
+            raise TypeError
         self._no_selection = status
 
     @property
-    def sorting_enabled(self):
+    def sorting_enabled(self) -> bool:
         """ Getter method for sort status """
         return self._sorting_enabled
 
     @sorting_enabled.setter
-    def sorting_enabled(self, sorting):
+    def sorting_enabled(self, sorting: bool):
         """ Getter method for sort status """
+        if type(sorting) != bool:
+            raise TypeError
         self._sorting_enabled = sorting
 
     def __init__(self, parent=None):
@@ -53,14 +59,18 @@ class UVVListWidget(QListWidget):
         super().__init__(parent)
         self._no_selection = False
         self._sorting_enabled = True
+        self.settings = UVVSettings()
 
     def copy_values(self):
         """ Copies the selected values of the ListWidget to the clipboard """
         items = self.selectedItems()
+        separator = self.settings.get_sep_char()
         if len(items) == 1:
             values = items[0].text()
+        elif self.settings.value('copy_newline') == 2:
+            values = '\n'.join([item.text() + separator for item in items])
         else:
-            values = '\n'.join([item.text() for item in items])
+            values = separator.join([item.text() for item in items])
         QgsApplication.clipboard().setText(values)
 
     def copy_values_quoted(self):
@@ -68,10 +78,14 @@ class UVVListWidget(QListWidget):
             quoting character to the clipboard
         """
         items = self.selectedItems()
+        quote_char = self.settings.get_quote_char()
+        separator = self.settings.get_sep_char()
         if len(items) == 1:
-            str_values = "'" + items[0].text() + "'"
+            str_values = quote_char + items[0].text() + quote_char
+        elif self.settings.value('copy_newline') == 2:
+            str_values = '\n'.join([quote_char + item.text() + quote_char + separator for item in items])
         else:
-            str_values = '\n'.join(["'" + item.text() + "'" for item in items])
+            str_values = separator.join([quote_char + item.text() + quote_char for item in items])
         QgsApplication.clipboard().setText(str_values)
 
     def setExtendedSelection(self):
@@ -100,6 +114,7 @@ class UVVListWidget(QListWidget):
 
 
 class NullItem(QListWidgetItem):
-    #TODO implement custom item
-    pass
 
+    def __init__(self):
+        """ Constructor."""
+        super().__init__('NULL [Null]')

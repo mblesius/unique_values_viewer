@@ -82,7 +82,8 @@ class UniqueValuesViewer:
 
         # Dockwidget
         self.dockwidget = UniqueValuesViewerDockWidget(self.iface,
-                                                       self.plugin_dir)
+                                                       self.plugin_dir,
+                                                       self.settings)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -137,6 +138,7 @@ class UniqueValuesViewer:
         """Removes the plugin menu item and icon from QGIS GUI."""
 
         QgsMessageLog.logMessage("** UNLOAD UniqueValuesViewer", level=Qgis.Info)
+        self.settings.restore_defaults()  # change to save settings in a file
 
         for action in self.actions:
             self.iface.removePluginVectorMenu(

@@ -66,7 +66,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
     @active_layer.setter
     def active_layer(self, layer):
         """ Setter method for the current map layer of the combo box
-        @param layer: A
+        @param layer: A vector layer in the project to be set for the plugin
         @type layer: QgsVectorLayer
         """
         self._map_layer = layer
@@ -111,7 +111,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         """ Getter method for the current QGIS project instance"""
         return QgsProject.instance()
 
-    def __init__(self, iface, plugin_dir, parent=None):
+    def __init__(self, iface, plugin_dir, settings, parent=None):
         """Constructor."""
         super(UniqueValuesViewerDockWidget, self).__init__(parent)
 
@@ -120,6 +120,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
         # init UI
         self.setupUi(self)
+        self.settings = settings
 
         # init properties
         self._map_layer = self.mMapLayerComboBox.currentLayer()
@@ -168,9 +169,12 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.valueSearch.cleared.connect(self.listWidget.clearSelection)
 
         # settings
-        self.sortOptionBtn.toggled.connect(self.change_sorting)
-        self.syncLayerBtn.toggled.connect(self.change_sync_layer)
-        #self.resetDefaultsBtn.toggled.connect(self.parent().settings.restore_defaults)
+        self.sortOptionBtn.stateChanged.connect(self.change_sorting)
+        self.syncLayerBtn.stateChanged.connect(self.change_sync_layer)
+        self.newLineBtn.stateChanged.connect(lambda v: self.setting_changed('copy_newline', v))
+        self.quoteCharBox.currentTextChanged.connect(lambda v: self.setting_changed('quote_char', v))
+        self.sepCharBox.currentTextChanged.connect(lambda v: self.setting_changed('sep_char', v))
+        self.resetDefaultsBtn.clicked.connect(self.reset_settings)
 
     def _init_sort(self) -> None:
         """ Creates the sort action for the values in the listWidget
@@ -291,13 +295,15 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
                 # If field contains datetime values, then convert them to string with toString method
                 # and check if Field Format in QgsEditorWidgetSetup was changed
-                if self.field_type is FieldTypes.DATETIME:
+                if (self.field_type | FieldTypes.DATE is FieldTypes.DATETIME
+                        or self.field_type | FieldTypes.TIME is FieldTypes.DATETIME):
+
                     str_set = {str(v) if v.isNull() else v.toString(Qt.ISODate) for v in v_set}
                 else:
                     str_set = {str(v) for v in v_set}
 
             else:
-                # print("Virtual field")
+                # QgsMessageLog.logMessage("Virtual field", level=Qgis.Info)
                 # Get unique values "manually" for virtual fields because built_in does not support it
                 str_set = {str(feat.attributes()[idx])
                            for feat in self.active_layer.getFeatures()}
@@ -308,7 +314,8 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.no_features_selected = False
 
             # If field contains datetime values, then convert them to string with toString method
-            if self.field_type is FieldTypes.DATETIME:
+            if (self.field_type | FieldTypes.DATE is FieldTypes.DATETIME
+                    or self.field_type | FieldTypes.TIME is FieldTypes.DATETIME):
                 v_set = {feat.attributes()[idx]
                          for feat in self.active_layer.getSelectedFeatures()}
                 str_set = {str(v) if v.isNull() else v.toString(Qt.ISODate) for v in v_set}
@@ -319,7 +326,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         # Return an empty set in case no features were selected when option was checked
         else:
             self.no_features_selected = True
-            str_set = set()
+            return set()
 
         # Check if NULL values were contained, None can occur for virtual fields
         if "None" in str_set:
@@ -356,7 +363,10 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
             self.field_type = match_field_type(ftype)
 
             if self.field_type is FieldTypes.UNSUPPORTED:
-                self.iface.messageBar().pushWarning("Warning:", f"Unsupported field type: {ftype}",)
+                self.iface.messageBar().pushMessage("Unsupported field type:",
+                                                    f"{ftype}",
+                                                    level=Qgis.Warning,
+                                                    duration=2)
                 self.enable_updates(False)
             else:
                 if not self.liveUpdateBtn.isChecked():
@@ -455,29 +465,36 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                     else:
                         self.update_values()
 
-    def change_sorting(self) -> None:
-        """ Changes the sorting option for the ListWidgetItems """
-        # Do not use the sorting functionality of QListWidget, it will sort
-        # alphabetically
-        if self.sortOptionBtn.isChecked() is True:
+    def change_sorting(self, state: int) -> None:
+        """ Changes the sorting option for the ListWidgetItems
+        :param state: Checkstate of the QCheckbox that is connected
+        """
+        # Do not use the sorting functionality of QListWidget,
+        # it will sort alphabetically
+        if state == 2:  # Qt.Checked
             self.listWidget.sorting_enabled = True
+            self.settings.setValue('value_sort', state)
             self.sortValuesBtn.setEnabled(True)
-        else:
+        elif state == 0:  # Qt.Unchecked
             self.listWidget.sorting_enabled = False
+            self.settings.setValue('value_sort', state)
             self.sortValuesBtn.setEnabled(False)
 
-    def change_sync_layer(self) -> None:
+    def change_sync_layer(self, state: int) -> None:
         """ Enables/disables synchronisation of active layer from iface
-            with active layer of plugin/combo box
+        with active layer of plugin/combo box
+        :param state: Checkstate of the QCheckbox that is connected
         """
-        if self.syncLayerBtn.isChecked() is True:
+        if state == 2:  # Qt.Checked
             self.iface.currentLayerChanged.connect(self.sync_iface_layer_changed)
-
-        else:
+            self.settings.setValue('sync_layer', state)
+        elif state == 0:  # Qt.Unchecked
             try:
                 self.iface.currentLayerChanged.disconnect(self.sync_iface_layer_changed)
             except TypeError:
                 traceback.print_exc()
+            else:
+                self.settings.setValue('sync_layer', state)
 
     def change_live_update(self) -> None:
         """ Changes the widget to update the unique values automatically
@@ -535,7 +552,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         self.closingPlugin.emit()
         event.accept()
 
-    def connect_active_layer(self, new_layer) -> None:
+    def connect_active_layer(self, new_layer: QgsVectorLayer) -> None:
         """ Changes active layer property, connects the new
         layer with the relevant slots and sets it as layer for
         the field combo box.
@@ -776,6 +793,18 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
         values_to_remove = {item.text() for item in items}
         self.unique_values -= values_to_remove
 
+    def reset_settings(self) -> None:
+        """ Restores the default settings """
+        self.enable_updates(False)
+        self.settings.restore_defaults()
+
+        self.sortOptionBtn.setCheckState(self.settings.value('value_sort', type=int))
+        self.syncLayerBtn.setCheckState(self.settings.value('sync_layer', type=int))
+        self.runTasksBtn.setCheckState(self.settings.value('background_proc', type=int))
+        self.newLineBtn.setCheckState(self.settings.value('copy_newline', type=int))
+        self.quoteCharBox.setCurrentText(self.settings.value('quote_char'))
+        self.sepCharBox.setCurrentText(self.settings.value('sep_char'))
+
     def search_values(self) -> None:
         """Searches ListWidget for matching values and updates it to
         only show the matching ones"""
@@ -827,6 +856,13 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
                 delete_list_widget_items(self.listWidget.selectedItems(), self.listWidget)
                 self.intersect_values(items)
         QgsMessageLog.logMessage(f"Selection Expression: {expr}", level=Qgis.Info)
+
+    def setting_changed(self, key: str, value: str) -> None:
+        """Change the setting ``key´´ to ``value´´.
+        :param key: The name of the QgsSetting
+        :param value: The new value for the QgsSetting
+        """
+        self.settings.setValue(key, value)
 
     def sort_values(self) -> None:
         """Sorts the values in the ListWidget either ascending
@@ -904,7 +940,7 @@ class UniqueValuesViewerDockWidget(QgsDockWidget, FORM_CLASS):
 
             # Use Get unique values, convert to list and sort if enabled
             if self.mMapLayerComboBox.currentLayer() is not None:
-                print("Update Values")
+                QgsMessageLog.logMessage("Update Values", level=Qgis.Info)
 
                 self.unique_values = set()
                 try:

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>283</width>
-    <height>372</height>
+    <width>321</width>
+    <height>415</height>
    </rect>
   </property>
   <property name="floating">
@@ -170,6 +170,15 @@
            </color>
           </brush>
          </colorrole>
+         <colorrole role="PlaceholderText">
+          <brush brushstyle="NoBrush">
+           <color alpha="128">
+            <red>0</red>
+            <green>0</green>
+            <blue>0</blue>
+           </color>
+          </brush>
+         </colorrole>
         </active>
         <inactive>
          <colorrole role="WindowText">
@@ -301,6 +310,15 @@
          <colorrole role="ToolTipText">
           <brush brushstyle="SolidPattern">
            <color alpha="255">
+            <red>0</red>
+            <green>0</green>
+            <blue>0</blue>
+           </color>
+          </brush>
+         </colorrole>
+         <colorrole role="PlaceholderText">
+          <brush brushstyle="NoBrush">
+           <color alpha="128">
             <red>0</red>
             <green>0</green>
             <blue>0</blue>
@@ -444,11 +462,20 @@
            </color>
           </brush>
          </colorrole>
+         <colorrole role="PlaceholderText">
+          <brush brushstyle="NoBrush">
+           <color alpha="128">
+            <red>0</red>
+            <green>0</green>
+            <blue>0</blue>
+           </color>
+          </brush>
+         </colorrole>
         </disabled>
        </palette>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="viewerTab">
        <attribute name="title">
@@ -639,10 +666,157 @@ This can affect performance.</string>
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QCheckBox" name="runTasksBtn">
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
+          <property name="title">
+           <string>Copy</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="7">
+            <spacer name="hSpacerCopy1">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="sepCharLbl">
+             <property name="toolTip">
+              <string>The separation character that is used when copying more than one value from the list of values.</string>
+             </property>
              <property name="text">
-              <string>Run calculations as background tasks</string>
+              <string>Separation Character</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="newLineBtn">
+             <property name="text">
+              <string>Place values in new line</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="quoteCharLbl">
+             <property name="toolTip">
+              <string>Character to wrap around when copying quoted values.</string>
+             </property>
+             <property name="text">
+              <string>Quoting Character</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QComboBox" name="sepCharBox">
+             <property name="editable">
+              <bool>false</bool>
+             </property>
+             <property name="currentText">
+              <string>,</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>,</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>;</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Space</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Tab</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Other</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="7">
+            <spacer name="hSpacerCopy2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="2">
+            <widget class="QComboBox" name="quoteCharBox">
+             <property name="editable">
+              <bool>false</bool>
+             </property>
+             <property name="currentText">
+              <string>'</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>'</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>&quot;</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>´</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>`</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Space</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Other</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="0" column="6">
+            <widget class="QLineEdit" name="quote_char_custom">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="6">
+            <widget class="QLineEdit" name="sep_char_custom">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -687,143 +861,6 @@ This can affect performance.</string>
               <string notr="true">dispOptionGrp</string>
              </attribute>
             </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
-          <property name="title">
-           <string>Copy</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_3">
-           <item row="0" column="0">
-            <widget class="QLabel" name="quoteCharLbl">
-             <property name="text">
-              <string>Quoting Character</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QComboBox" name="quoteCharCBox">
-             <property name="currentText">
-              <string>'</string>
-             </property>
-             <item>
-              <property name="text">
-               <string>'</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>&quot;</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>´</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>`</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Space</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Other</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="sepCharLbl">
-             <property name="toolTip">
-              <string>The separation character that is used when copying more than one value from the list of values.</string>
-             </property>
-             <property name="text">
-              <string>Separation Character</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLineEdit" name="sep_char_custom">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="sepCharCBox">
-             <item>
-              <property name="text">
-               <string>New Line</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Space</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Tab</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>;</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>,</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Other</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="1" column="3">
-            <spacer name="hSpacerCopy2">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="2">
-            <widget class="QLineEdit" name="quote_char_custom">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <spacer name="hSpacerCopy1">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </widget>
